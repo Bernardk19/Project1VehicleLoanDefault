@@ -1,0 +1,56 @@
+# Clean column names by stripping whitespace
+data.columns = data.columns.str.strip()
+
+# Identify categorical columns
+categorical_cols = data.select_dtypes(include=['object']).columns.tolist()
+
+# Apply label encoding
+label_encoders = {}
+for col in categorical_cols:
+    le = LabelEncoder()
+    data[col] = le.fit_transform(data[col].astype(str))  # Convert to string as we would get errors otherwise
+    label_encoders[col] = le
+
+# Define features and target
+X = data.drop(columns=['UniqueID', 'loan_default'])  # Drop the target and ID
+y = data['loan_default']
+
+# Split dataset
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Create and train the Random Forest model
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+model.fit(X_train, y_train)
+
+# Evaluate the model
+y_pred = model.predict(X_test)
+print("Classification Report for the Model:")
+print(classification_report(y_test, y_pred))
+
+#APP TO TEST MODEL
+import gradio as gr
+
+#Function to make predictions
+def predict_loan_default(unique_id):
+    user_data = data[data['UniqueID'] == unique_id]
+    
+    if user_data.empty:
+        return "UniqueID not found."
+    
+    #Prepare input for our prediction
+    user_input = user_data.drop(columns=['UniqueID', 'loan_default']).values
+    
+    #Predict default
+    prediction = model.predict(user_input)
+    
+
+iface = gr.Interface(
+    fn=predict_loan_default,
+    inputs="number",
+    outputs="text",
+    title="Vehicle Loan Default Prediction",
+    description="Enter the UniqueID to see if the client will default on the vehicle loan."
+)
+
+# Launch the interface
+iface.launch()
