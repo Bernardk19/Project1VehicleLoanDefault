@@ -1,0 +1,22 @@
+import matplotlib.pyplot as plt
+
+# Data for comparison
+models = ['Nontuned Model', 'Tuned Model']
+mean_accuracies = [0.7818737877048976, 0.7759634713249384]  # Mean accuracies
+std_devs = [0.0010729738375816634, 0.008138123211405097]  # Standard deviations
+
+# Create a bar plot for the mean accuracy comparison
+fig, ax = plt.subplots(figsize=(10, 6))
+
+# Plotting the bar chart for mean accuracy
+bars = ax.bar(models, mean_accuracies, yerr=std_devs, capsize=10, color=['skyblue', 'lightgreen'], edgecolor='black')
+
+# Adding titles and labels
+ax.set_title('Comparison of Tuned vs Nontuned Model Performance', fontsize=16)
+ax.set_xlabel('Model', fontsize=12)
+ax.set_ylabel('Accuracy', fontsize=12)
+ax.set_ylim(0.7, 0.85)
+
+# Display the chart
+plt.tight_layout()
+plt.show()
