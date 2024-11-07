@@ -1,0 +1,51 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split, KFold, cross_val_score
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.preprocessing import LabelEncoder
+from sklearn.metrics import classification_report
+import numpy as np
+
+# Load the dataset
+data = pd.read_csv('train.csv')
+
+# Check for missing values and data types
+print(data.info())
+print(data.head())
+
+# Clean column names by stripping whitespace
+data.columns = data.columns.str.strip()
+
+# Identify categorical columns
+categorical_cols = data.select_dtypes(include=['object']).columns.tolist()
+
+# Apply label encoding
+label_encoders = {}
+for col in categorical_cols:
+    le = LabelEncoder()
+    data[col] = le.fit_transform(data[col].astype(str))  # Convert to string as we would get errors otherwise
+    label_encoders[col] = le
+
+# Define features and target
+X = data.drop(columns=['UniqueID', 'loan_default'])  # Drop the target and ID
+y = data['loan_default']
+
+# Split the dataset into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Create the tuned RandomForestClassifier model
+model = RandomForestClassifier(n_estimators=200, max_depth=15, random_state=42)  # Tuned hyperparameters
+
+# Train the model
+model.fit(X_train, y_train)
+
+# Evaluate the model
+y_pred = model.predict(X_test)
+print("Classification Report for the Tuned Model:")
+print(classification_report(y_test, y_pred))
+
+# Perform 5-fold cross-validation
+cv_scores = cross_val_score(model, X, y, cv=5, scoring='accuracy')
+
+# Print the mean and standard deviation of accuracy
+print("\nCross-Validation Mean Accuracy (Tuned Model): ", np.mean(cv_scores))
+print("Cross-Validation Standard Deviation of Accuracy (Tuned Model): ", np.std(cv_scores))
